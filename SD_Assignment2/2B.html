@@ -23,38 +23,7 @@
 </head>
 <body>
 
-<h2>Assignment 2A: Simple SVG stuff</h2>
-<script type="text/javascript">
-
-    var dataset = [ 5, 10, 15, 20, 25 ];
-
-    d3.select("body").selectAll("p")
-            .data(dataset)
-            .enter()
-            .append("p")
-            .text(function(d) {
-                return "I can count up to " + d;
-            })
-            .style("color", function(d) {
-                if (d > 15) { //Threshold of 15
-                    return "red";
-                } else {
-                    return "black";
-                }
-            });
-
-</script>
-<svg width="500" height="160">
-    <rect x="0" y="40" width="80" height="80" style="fill:purple;stroke-width:2;stroke:gray" fill-opacity="1"></rect>
-    <rect x="40" y="30" width="80" height="80" style="fill:blue;stroke-width:2;stroke:gray" fill-opacity="0.8"></rect>
-    <rect x="80" y="20" width="80" height="80" style="fill:green;stroke-width:2;stroke:gray" fill-opacity="0.6"></rect>
-    <rect x="120" y="10" width="80" height="80" style="fill:yellow;stroke-width:2;stroke:gray" fill-opacity="0.4"></rect>
-    <rect x="160" y="0" width="80" height="80" style="fill:red;stroke-width:2;stroke:gray" fill-opacity="0.2"></rect>
-</svg>
-
-<h2>Assignment 2B: One scatter plot and two datasets</h2>
-
-<p id="toggler_2b">Click here to toggle between years! Active year is 2015</p>
+<p>Click here to toggle between years! Active year is 2015</p>
 
 <script type="text/javascript">
 
@@ -153,8 +122,8 @@
                 .attr("font-size", "11px")
                 .attr("fill", "#127800")
                 .attr("x", function(d) {
-                    return xScale(d[0]+1);
-                })
+                        return xScale(d[0]+1);
+                    })
                 .attr("y", function(d) {
                     return yScale(d[1] + 25);
                 })
@@ -192,7 +161,7 @@
 
 
     //On click, update with new data
-    d3.select("#toggler_2b")
+    d3.select("p")
             .on("click", function () {
                 dataset = []
                 if (data2003_chosen == false)
@@ -202,7 +171,7 @@
                     });
                     data2003_chosen = true;
                     data2015_chosen = false;
-                    $("#toggler_2b").text("Click here to toggle between years! Active year is 2003")
+                    $("p").text("Click here to toggle between years! Active year is 2003")
                 }
                 else {
                     data2015.forEach(function(d) {
@@ -210,7 +179,7 @@
                     });
                     data2003_chosen = false;
                     data2015_chosen = true;
-                    $("#toggler_2b").text("Click here to toggle between years! Active year is 2015")
+                    $("p").text("Click here to toggle between years! Active year is 2015")
                 }
 
                 dataset = dataset.sort(Comparator);
