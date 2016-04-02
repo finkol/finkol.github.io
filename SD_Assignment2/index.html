@@ -70,7 +70,11 @@
 
     <h2>Assignment 2B: One scatter plot and two datasets</h2>
 
-    <p id="toggler_2b">Click here to toggle between years! Active year is 2015</p>
+    <button type="button" id="toggler_2b" style="width: 100px; height: 40px; font-size: 1em;">2015</button>
+
+    <p>click the button above to toggle between years!</p>
+    <h3 id="headerLabel">Crime Statistics for 2003</h3>
+
     <div id="b_svg"></div>
 
     <script type="text/javascript">
@@ -183,10 +187,10 @@
                         .attr("font-size", "11px")
                         .attr("fill", "#127800")
                         .attr("x", function (d) {
-                            return xScale(d[0] + 1);
+                            return padding*2 + xScale(d[0] + 1);
                         })
                         .attr("y", function (d) {
-                            return yScale(d[1] + 25);
+                            return yScale(d[1] + 35);
                         })
                 create_axis();
             }
@@ -218,21 +222,21 @@
                         .call(yAxis);
 
                         // //label x axis
-                // svg.append("text")
-                //     .attr("y", 575)
-                //     .attr("x",450)
-                //     .style("text-anchor", "middle")
-                //     .text("Date");
+                svg1.append("text")
+                    .attr("y", 690)
+                    .attr("x",450)
+                    .style("text-anchor", "middle")
+                    .text("Prostitution Incidents");
 
 
                 //label y axis
                 svg1.append("text")
                     .attr("transform", "rotate(-90)")
                     .attr("y", 20)
-                    .attr("x",-200)
+                    .attr("x",-290)
                     .attr("dy", "1em")
                     .style("text-anchor", "middle")
-                    .text("Number of crimes");
+                    .text("Vehicle Theft Incidents");
 
             }
 
@@ -248,7 +252,8 @@
                             });
                             data2003_chosen = true;
                             data2015_chosen = false;
-                            $("#toggler_2b").text("Click here to toggle between years! Active year is 2003")
+                            $("#toggler_2b").text("2003")
+                            $("#headerLabel").text("Statistics for 2015")
                         }
                         else {
                             data2015.forEach(function (d) {
@@ -256,7 +261,8 @@
                             });
                             data2003_chosen = false;
                             data2015_chosen = true;
-                            $("#toggler_2b").text("Click here to toggle between years! Active year is 2015")
+                            $("#toggler_2b").text("2015")
+                            $("#headerLabel").text("Statistics for 2003")
                         }
 
                         dataset = dataset.sort(Comparator);
@@ -307,7 +313,7 @@
                                 .attr("font-size", "11px")
                                 .attr("fill", "#127800")
                                 .attr("x", function (d) {
-                                    return xScale(d[0] + 1);
+                                    return padding*2 + xScale(d[0] + 1 );
                                 })
                                 .attr("y", function (d) {
                                     return yScale(d[1] + 25);
@@ -465,12 +471,12 @@
                     .attr("transform", "translate(" + padding*3 + ",0)")
                     .call(yAxis);
 
-            // //label x axis
-            // svg.append("text")
-            //     .attr("y", 575)
-            //     .attr("x",450)
-            //     .style("text-anchor", "middle")
-            //     .text("Date");
+            //label x axis
+            svg.append("text")
+                .attr("y", 610)
+                .attr("x",450)
+                .style("text-anchor", "middle")
+                .text("Districts");
 
 
             //label y axis
@@ -480,7 +486,7 @@
                 .attr("x",-200)
                 .attr("dy", "1em")
                 .style("text-anchor", "middle")
-                .text("Number of crimes");
+                .text("Total Number of Prostitution and Vehicle Thefts Incidents");
 
         }
 
