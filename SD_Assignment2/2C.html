@@ -44,7 +44,6 @@
         return 0;
     }
 
-    var xAxisLabel = "2015"
     var w = 800;
     var h = 550;
     var barPadding = 1;
@@ -233,6 +232,7 @@
                     .ticks(5);
 
                 svg.selectAll("g.y.axis")
+                    console.log("veiii")
                     .call(yAxis);
 
 

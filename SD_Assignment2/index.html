@@ -6,7 +6,9 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.16/d3.min.js"></script>
     <script src="https://code.jquery.com/jquery-2.2.2.min.js" integrity="sha256-36cp2Co+/62rEAAYHLmRCPIych47CvdM+uTBJwSzWjI=" crossorigin="anonymous"></script>
     <style type="text/css">
-
+        #container{
+            margin-left: 5%;
+        }
         .axis path,
         .axis line {
             fill: none;
@@ -17,6 +19,9 @@
         .axis text {
             font-family: sans-serif;
             font-size: 11px;
+        }
+        h3 {
+            margin-left: 350px;
         }
 
     </style>
@@ -32,57 +37,312 @@
 
 </head>
 <body>
+<div id="container">
 
-<h2>Assignment 2A: Simple SVG stuff</h2>
-<script type="text/javascript">
+    <h2>Assignment 2A: Simple SVG stuff</h2>
+    <script type="text/javascript">
 
-    var dataset = [ 5, 10, 15, 20, 25 ];
+        var dataset = [ 5, 10, 15, 20, 25 ];
 
-    d3.select("body").selectAll("p")
-            .data(dataset)
-            .enter()
-            .append("p")
-            .text(function(d) {
-                return "I can count up to " + d;
-            })
-            .style("color", function(d) {
-                if (d > 15) { //Threshold of 15
-                    return "red";
-                } else {
-                    return "black";
+        d3.select("body").selectAll("p")
+                .data(dataset)
+                .enter()
+                .append("p")
+                .text(function(d) {
+                    return "I can count up to " + d;
+                })
+                .style("color", function(d) {
+                    if (d > 15) { //Threshold of 15
+                        return "red";
+                    } else {
+                        return "black";
+                    }
+                });
+
+    </script>
+    <svg width="500" height="160">
+        <rect x="0" y="40" width="80" height="80" style="fill:purple;stroke-width:2;stroke:gray" fill-opacity="1"></rect>
+        <rect x="40" y="30" width="80" height="80" style="fill:blue;stroke-width:2;stroke:gray" fill-opacity="0.8"></rect>
+        <rect x="80" y="20" width="80" height="80" style="fill:green;stroke-width:2;stroke:gray" fill-opacity="0.6"></rect>
+        <rect x="120" y="10" width="80" height="80" style="fill:yellow;stroke-width:2;stroke:gray" fill-opacity="0.4"></rect>
+        <rect x="160" y="0" width="80" height="80" style="fill:red;stroke-width:2;stroke:gray" fill-opacity="0.2"></rect>
+    </svg>
+
+    <h2>Assignment 2B: One scatter plot and two datasets</h2>
+
+    <p id="toggler_2b">Click here to toggle between years! Active year is 2015</p>
+    <div id="b_svg"></div>
+
+    <script type="text/javascript">
+        $(function() {
+            function Comparator(a, b) {
+                if (a[2] < b[2]) return -1;
+                if (a[2] > b[2]) return 1;
+                return 0;
+            }
+
+            var w = 900;
+            var h = 650;
+            var padding = 30;
+            var xScale;
+            var yScale;
+            var rScale;
+            var dataset = [];
+            var svg1;
+            var data2015;
+            var data2003;
+            var xAxis;
+            var yAxis;
+            var data2015_chosen = true;
+            var data2003_chosen = false;
+
+            d3.csv("week7_part4_1.csv", function (error, data) {
+
+                if (error) {  //If error is not null, something went wrong.
+                    console.log("Error: " + error);  //Log the error.
+                } else {      //If no error, the file loaded correctly. Yay!
+
+                    var dataCategorized = d3.nest()
+                            .key(function (d) {
+                                return d.year
+                            })
+                            .key(function (d) {
+                                return d.district;
+                            })
+                            .key(function (d) {
+                                return d.category;
+                            })
+                            .rollup(function (v) {
+                                return v.length;
+                            })
+                            .entries(data);
+
+                    data2015 = dataCategorized[1]['values']
+                    data2003 = dataCategorized[0]['values']
+                    data2015.forEach(function (d) {
+                        dataset.push([d['values'][1]['values'], d['values'][0]['values'], d['key']])
+                    });
+                    dataset = dataset.sort(Comparator);
+                    create_scale_functions();
+                    create_svg();
                 }
+
             });
 
-</script>
-<svg width="500" height="160">
-    <rect x="0" y="40" width="80" height="80" style="fill:purple;stroke-width:2;stroke:gray" fill-opacity="1"></rect>
-    <rect x="40" y="30" width="80" height="80" style="fill:blue;stroke-width:2;stroke:gray" fill-opacity="0.8"></rect>
-    <rect x="80" y="20" width="80" height="80" style="fill:green;stroke-width:2;stroke:gray" fill-opacity="0.6"></rect>
-    <rect x="120" y="10" width="80" height="80" style="fill:yellow;stroke-width:2;stroke:gray" fill-opacity="0.4"></rect>
-    <rect x="160" y="0" width="80" height="80" style="fill:red;stroke-width:2;stroke:gray" fill-opacity="0.2"></rect>
-</svg>
+            function create_scale_functions() {
+                xScale = d3.scale.linear()
+                        .domain([0, d3.max(dataset, function (d) {
+                            return d[0];
+                        })])
+                        .range([padding, w - padding * 2]);
 
-<h2>Assignment 2B: One scatter plot and two datasets</h2>
+                yScale = d3.scale.linear()
+                        .domain([0, d3.max(dataset, function (d) {
+                            return d[1];
+                        })])
+                        .range([h - padding, padding]);
 
-<p id="toggler_2b">Click here to toggle between years! Active year is 2015</p>
-<div id="b_svg"></div>
+                rScale = d3.scale.linear()
+                        .domain([0, d3.max(dataset, function (d) {
+                            return d[0] + d[1];
+                        })])
+                        .range([1, 20]);
+            }
 
-<script type="text/javascript">
-    $(function() {
-        function Comparator(a, b) {
+            function create_svg() {
+                //Create SVG element
+                svg1 = d3.select("#b_svg")
+                        .append("svg:svg")
+                        .attr("width", w+100)
+                        .attr("height", h+100);
+
+                //Create circles
+                svg1.selectAll("circle")
+                        .data(dataset)
+                        .enter()
+                        .append("circle")
+                        .attr("cx", function (d, i) {
+                            return padding*3 + xScale(d[0]);
+                        })
+                        .attr("cy", function (d, i) {
+                            return yScale(d[1]);
+                        })
+                        .attr("r", function (d) {
+                            return rScale(d[1]);
+                        })
+                        .attr("fill", "#FF7777");
+
+                svg1.selectAll("text")
+                        .data(dataset)
+                        .enter()
+                        .append("text")
+                        .text(function (d) {
+                            return d[2];
+                        })
+                        .attr("font-family", "sans-serif")
+                        .attr("font-size", "11px")
+                        .attr("fill", "#127800")
+                        .attr("x", function (d) {
+                            return xScale(d[0] + 1);
+                        })
+                        .attr("y", function (d) {
+                            return yScale(d[1] + 25);
+                        })
+                create_axis();
+            }
+
+            function create_axis() {
+
+                //Define X axis
+                xAxis = d3.svg.axis()
+                        .scale(xScale)
+                        .orient("bottom")
+                        .ticks(5);
+
+                //Define Y axis
+                yAxis = d3.svg.axis()
+                        .scale(yScale)
+                        .orient("left")
+                        .ticks(5);
+
+
+                //Create X axis
+                svg1.append("g")
+                        .attr("class", "x axis")
+                        .attr("transform", "translate("+ padding*2 +"," + (h - padding) + ")")
+                        .call(xAxis);
+                //Create Y axis
+                svg1.append("g")
+                        .attr("class", "y axis")
+                        .attr("transform", "translate(" + padding*3 + ",0)")
+                        .call(yAxis);
+
+                        // //label x axis
+                // svg.append("text")
+                //     .attr("y", 575)
+                //     .attr("x",450)
+                //     .style("text-anchor", "middle")
+                //     .text("Date");
+
+
+                //label y axis
+                svg1.append("text")
+                    .attr("transform", "rotate(-90)")
+                    .attr("y", 20)
+                    .attr("x",-200)
+                    .attr("dy", "1em")
+                    .style("text-anchor", "middle")
+                    .text("Number of crimes");
+
+            }
+
+
+
+            //On click, update with new data
+            d3.select("#toggler_2b")
+                    .on("click", function () {
+                        dataset = []
+                        if (data2003_chosen == false) {
+                            data2003.forEach(function (d) {
+                                dataset.push([d['values'][1]['values'], d['values'][0]['values'], d['key']])
+                            });
+                            data2003_chosen = true;
+                            data2015_chosen = false;
+                            $("#toggler_2b").text("Click here to toggle between years! Active year is 2003")
+                        }
+                        else {
+                            data2015.forEach(function (d) {
+                                dataset.push([d['values'][1]['values'], d['values'][0]['values'], d['key']])
+                            });
+                            data2003_chosen = false;
+                            data2015_chosen = true;
+                            $("#toggler_2b").text("Click here to toggle between years! Active year is 2015")
+                        }
+
+                        dataset = dataset.sort(Comparator);
+                        // console.log(dataset)
+                        create_scale_functions();
+
+                        // update axis
+                        yAxis = d3.svg.axis()
+                            .scale(yScale)
+                            .orient("left")
+                            .ticks(5);
+
+                        //Define X axis
+                        xAxis = d3.svg.axis()
+                                .scale(xScale)
+                                .orient("bottom")
+                                .ticks(5);
+
+                        svg1.selectAll("g.y.axis")
+                            .call(yAxis);
+
+                        svg1.selectAll("g.x.axis")
+                            .call(xAxis);
+
+
+                        svg1.selectAll("circle")
+                                .data(dataset)
+                                .transition()
+                                .duration(2000)
+                                .attr("cx", function (d, i) {
+                                    return padding*3 + xScale(d[0]);
+                                })
+                                .attr("cy", function (d, i) {
+                                    return yScale(d[1]);
+                                })
+                                .attr("r", function (d) {
+                                    return rScale(d[1]);
+                                });
+
+                        svg1.selectAll("text")
+                                .data(dataset)
+                                .transition()
+                                .duration(2000)
+                                .text(function (d) {
+                                    return d[2];
+                                })
+                                .attr("font-family", "sans-serif")
+                                .attr("font-size", "11px")
+                                .attr("fill", "#127800")
+                                .attr("x", function (d) {
+                                    return xScale(d[0] + 1);
+                                })
+                                .attr("y", function (d) {
+                                    return yScale(d[1] + 25);
+                                })
+                    });
+
+        });
+
+    </script>
+
+    <h2>Assignment 2C: One barchart and (at least) two datasets</h2>
+    <button type="button" id="toggler_2c" style="width: 100px; height: 40px; font-size: 1em;">2015</button>
+
+    <p>click the button above to toggle between years!</p>
+    <h3 id="headerLabel">Crime Statistics for 2003</h3>
+
+    <div id="c_svg"></div>
+    <script type="text/javascript">
+
+        function Comparator(a,b){
             if (a[2] < b[2]) return -1;
             if (a[2] > b[2]) return 1;
             return 0;
         }
 
-        var w = 600;
-        var h = 500;
+        var xAxisLabel = "2015"
+        var w = 800;
+        var h = 550;
+        var barPadding = 1;
         var padding = 30;
         var xScale;
         var yScale;
         var rScale;
         var dataset = [];
-        var svg1;
+        var svg;
         var data2015;
         var data2003;
         var xAxis;
@@ -97,26 +357,19 @@
             } else {      //If no error, the file loaded correctly. Yay!
 
                 var dataCategorized = d3.nest()
-                        .key(function (d) {
-                            return d.year
-                        })
-                        .key(function (d) {
-                            return d.district;
-                        })
-                        .key(function (d) {
-                            return d.category;
-                        })
-                        .rollup(function (v) {
-                            return v.length;
-                        })
+                        .key(function(d) { return d.year})
+                        .key(function(d) { return d.district; })
+                        .key(function(d) { return d.category; })
+                        .rollup(function(v) { return v.length; })
                         .entries(data);
 
                 data2015 = dataCategorized[1]['values']
                 data2003 = dataCategorized[0]['values']
-                data2015.forEach(function (d) {
-                    dataset.push([d['values'][1]['values'], d['values'][0]['values'], d['key']])
+                data2015.forEach(function(d) {
+                    dataset.push([d['values'][1]['values'], d['values'][0]['values'],d['key']])
                 });
                 dataset = dataset.sort(Comparator);
+                console.log(dataset)
                 create_scale_functions();
                 create_svg();
             }
@@ -124,63 +377,55 @@
         });
 
         function create_scale_functions() {
-            xScale = d3.scale.linear()
-                    .domain([0, d3.max(dataset, function (d) {
-                        return d[0];
-                    })])
-                    .range([padding, w - padding * 2]);
+            xScale = d3.scale.ordinal()
+                    .domain(d3.range(dataset.length))
+                    .rangeRoundBands([30, w], 0.25);
 
             yScale = d3.scale.linear()
-                    .domain([0, d3.max(dataset, function (d) {
-                        return d[1];
-                    })])
+                    .domain([0, d3.max(dataset, function(d) { return d[1]; })])
                     .range([h - padding, padding]);
-
-            rScale = d3.scale.linear()
-                    .domain([0, d3.max(dataset, function (d) {
-                        return d[0] + d[1];
-                    })])
-                    .range([1, 20]);
         }
+
 
         function create_svg() {
             //Create SVG element
-            svg1 = d3.select("#b_svg")
-                    .append("svg:svg")
-                    .attr("width", w)
-                    .attr("height", h);
+            svg = d3.select("#c_svg")
+                    .append("svg")
+                    .attr("width", w+100)
+                    .attr("height", h+100);
 
-            //Create circles
-            svg1.selectAll("circle")
-                    .data(dataset)
-                    .enter()
-                    .append("circle")
-                    .attr("cx", function (d, i) {
-                        return xScale(d[0]);
-                    })
-                    .attr("cy", function (d, i) {
-                        return yScale(d[1]);
-                    })
-                    .attr("r", function (d) {
-                        return rScale(d[1]);
-                    })
-                    .attr("fill", "#FF7777");
+            //Create bars
+            svg.selectAll("rect")
+               .data(dataset)
+               .enter()
+               .append("rect")
+               .attr("x", function(d, i) {
+                    return (padding * 2) + xScale(i);
+               })
+               .attr("y", function(d) {
+                    return yScale(d[1]);
+               })
+               .attr("height", function(d) {
+                    return h - (yScale(d[1])) - padding;
+               })
+               .attr("width", xScale.rangeBand())
+               .attr("fill", "#FF7777");
 
-            svg1.selectAll("text")
+            svg.selectAll("text")
                     .data(dataset)
                     .enter()
                     .append("text")
-                    .text(function (d) {
-                        return d[2];
+                    .text(function(d) {
+                        return d[1];
                     })
                     .attr("font-family", "sans-serif")
                     .attr("font-size", "11px")
-                    .attr("fill", "#127800")
-                    .attr("x", function (d) {
-                        return xScale(d[0] + 1);
+                    .attr("fill", "#ffffff")
+                    .attr("x", function(d,i) {
+                        return (padding * 2) + xScale(i) + 15;
                     })
-                    .attr("y", function (d) {
-                        return yScale(d[1] + 25);
+                    .attr("y", function(d) {
+                        return yScale(d[1]) + 25;
                     })
             create_axis();
         }
@@ -200,144 +445,233 @@
                     .ticks(5);
 
             //Create X axis
-            svg1.append("g")
+            svg.append("g")
                     .attr("class", "x axis")
-                    .attr("transform", "translate(0," + (h - padding) + ")")
-                    .call(xAxis);
+                    .attr("transform", "translate(" + padding*2 + "," + (h - padding) + ")")
+                    .call(xAxis)
+                    .selectAll("text") 
+                        .data(dataset) 
+                        .style("text-anchor", "end")
+                        .text(function(d) {
+                            return d[2];
+                        })
+                        .attr("dx", ".2em")
+                        .attr("dy", "1.25em")
+                        .attr("transform", "rotate(-40)" );
 
             //Create Y axis
-            svg1.append("g")
+            svg.append("g")
                     .attr("class", "y axis")
-                    .attr("transform", "translate(" + padding + ",0)")
+                    .attr("transform", "translate(" + padding*3 + ",0)")
                     .call(yAxis);
+
+            // //label x axis
+            // svg.append("text")
+            //     .attr("y", 575)
+            //     .attr("x",450)
+            //     .style("text-anchor", "middle")
+            //     .text("Date");
+
+
+            //label y axis
+            svg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 20)
+                .attr("x",-200)
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .text("Number of crimes");
 
         }
 
 
+
         //On click, update with new data
-        d3.select("#toggler_2b")
+        d3.select("#toggler_2c")
                 .on("click", function () {
                     dataset = []
-                    if (data2003_chosen == false) {
-                        data2003.forEach(function (d) {
-                            dataset.push([d['values'][1]['values'], d['values'][0]['values'], d['key']])
+                    if (data2003_chosen == false)
+                    {
+                        console.log("2015")
+                        data2003.forEach(function(d) {
+                            dataset.push([d['values'][1]['values'], d['values'][0]['values'],d['key']])
                         });
                         data2003_chosen = true;
                         data2015_chosen = false;
-                        $("#toggler_2b").text("Click here to toggle between years! Active year is 2003")
+                        $("#toggler_2c").text("2003")
+                        $("#headerLabel").text("Crime Statistics for 2015")
                     }
                     else {
-                        data2015.forEach(function (d) {
-                            dataset.push([d['values'][1]['values'], d['values'][0]['values'], d['key']])
+                        data2015.forEach(function(d) {
+                            dataset.push([d['values'][1]['values'], d['values'][0]['values'],d['key']])
                         });
                         data2003_chosen = false;
                         data2015_chosen = true;
-                        $("#toggler_2b").text("Click here to toggle between years! Active year is 2015")
+                        $("#toggler_2c").text("2015")
+                        $("#headerLabel").text("Crime Statistics for 2003")
                     }
 
                     dataset = dataset.sort(Comparator);
-                    console.log(dataset)
+                    // console.log(dataset)
                     create_scale_functions()
-                    svg1.selectAll("circle")
-                            .data(dataset)
-                            .transition()
-                            .duration(2000)
-                            .attr("cx", function (d, i) {
-                                return xScale(d[0]);
-                            })
-                            .attr("cy", function (d, i) {
-                                return yScale(d[1]);
-                            })
-                            .attr("r", function (d) {
-                                return rScale(d[1]);
-                            });
 
-                    svg1.selectAll("text")
+                    // update axis
+                    yAxis = d3.svg.axis()
+                        .scale(yScale)
+                        .orient("left")
+                        .ticks(5);
+
+                    svg.selectAll("g.y.axis")
+                        .call(yAxis);
+
+
+                    svg.selectAll("rect")
+                       .data(dataset)
+                       .transition()
+                           .delay(function(d, i) {
+                               return i / dataset.length * 1000;
+                           })
+                           .duration(500)
+                       .attr("x", function(d, i) {
+                            return (padding * 2) +xScale(i);
+                       })
+                       .attr("y", function(d) {
+                            return yScale(d[1]);
+                       })
+                       .attr("height", function(d) {
+                            return h - (yScale(d[1])) - padding;
+                       })
+                       .attr("width", xScale.rangeBand())
+                       .attr("fill", "#FF7777");
+
+
+                    svg.selectAll("text")
                             .data(dataset)
                             .transition()
-                            .duration(2000)
-                            .text(function (d) {
-                                return d[2];
+                            .delay(function(d, i) {
+                                return i / dataset.length * 1000;
+                            })
+                            .duration(500)
+                            .text(function(d) {
+                                return d[1];
                             })
                             .attr("font-family", "sans-serif")
                             .attr("font-size", "11px")
-                            .attr("fill", "#127800")
-                            .attr("x", function (d) {
-                                return xScale(d[0] + 1);
+                            .attr("fill", "#ffffff")
+                            .attr("x", function(d,i) {
+                                return (padding * 2) +xScale(i) + 15;
                             })
-                            .attr("y", function (d) {
-                                return yScale(d[1] + 25);
+                            .attr("y", function(d) {
+                                return yScale(d[1]) + 25;
                             })
                 });
 
-    });
 
-</script>
 
-<h2>Assignment 2C: One barchart and (at least) two datasets</h2>
-<div id="c_svg"></div>
+    </script>
 
-<h2>Assignment 2D: Visualizing geodata</h2>
-<div id="d_svg"></div>
-<script type="text/javascript">
-    $(function() {
-        //Width and height
-        var width = 600;
-        var height = 500;
-        var dataset;
-        var colors = ["#E74C3C", "#9B59B6", "#3498DB", "#27AE60", "#2C3E50", "#F39C12"]
 
-        var svg2 = d3.select("#d_svg")
-                .append("svg:svg")
-                .attr("width", width)
-                .attr("height", height);
 
-        // create a unit projection
-        var projection = d3.geo.albers()
-                .scale(1)
-                .translate([0, 0]);
 
-        //Load in agriculture data
-        d3.csv("week8_part2.csv", function (data) {
-            dataset = data;
+    <h2>Assignment 2D: Visualizing geodata</h2>
+    <div id="d_svg"></div>
+    <script type="text/javascript">
+        $(function() {
+            //Width and height
+            var width = 600;
+            var height = 500;
+            var dataset;
+            var colors = ["#E74C3C", "#9B59B6", "#3498DB", "#27AE60", "#2C3E50", "#F39C12"]
 
-            //Load in GeoJSON data
-            d3.json("sfpddistricts.json", function (json) {
-                // create a path generator.
-                var path = d3.geo.path()
-                        .projection(projection);
+            var svg2 = d3.select("#d_svg")
+                    .append("svg:svg")
+                    .attr("width", width)
+                    .attr("height", height);
 
-                // compute bounds of a point of interest, then derive scale and translate
-                var b = path.bounds(json),
-                        s = .95 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height),
-                        t = [(width - s * (b[1][0] + b[0][0])) / 2, (height - s * (b[1][1] + b[0][1])) / 2];
+            // create a unit projection
+            var projection = d3.geo.albers()
+                    .scale(1)
+                    .translate([0, 0]);
 
-                // update the projection to use computed scale and translate....
-                projection
-                        .scale(s)
-                        .translate(t);
+            //Load in agriculture data
+            d3.csv("week8_part2.csv", function (data) {
+                dataset = data;
 
-                // add a rectangle to see the bound of the svg
-                svg2.append("rect")
-                        .attr('width', width)
-                        .attr('height', height)
-                        .style('stroke', 'black')
-                        .style('fill', 'none');
+                //Load in GeoJSON data
+                d3.json("sfpddistricts.json", function (json) {
+                    // create a path generator.
+                    var path = d3.geo.path()
+                            .projection(projection);
 
-                //Bind data and create one path per GeoJSON feature
-                svg2.selectAll("path")
-                        .data(json.features)
-                        .enter()
-                        .append("path")
-                        .attr("d", path)
-                        .style("fill", "#D7DBDD")
-                        .style("stroke-width", "1")
-                        .style("stroke", "black")
+                    // compute bounds of a point of interest, then derive scale and translate
+                    var b = path.bounds(json),
+                            s = .95 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height),
+                            t = [(width - s * (b[1][0] + b[0][0])) / 2, (height - s * (b[1][1] + b[0][1])) / 2];
 
+                    // update the projection to use computed scale and translate....
+                    projection
+                            .scale(s)
+                            .translate(t);
+
+                    // add a rectangle to see the bound of the svg
+                    svg2.append("rect")
+                            .attr('width', width)
+                            .attr('height', height)
+                            .style('stroke', 'black')
+                            .style('fill', 'none');
+
+                    //Bind data and create one path per GeoJSON feature
+                    svg2.selectAll("path")
+                            .data(json.features)
+                            .enter()
+                            .append("path")
+                            .attr("d", path)
+                            .style("fill", "#D7DBDD")
+                            .style("stroke-width", "1")
+                            .style("stroke", "black")
+
+                    svg2.selectAll("circle")
+                            .data(data)
+                            .enter()
+                            .append("circle")
+                            .attr("cx", function (d) {
+                                return projection([d.lon, d.lat])[0];
+                            })
+                            .attr("cy", function (d) {
+                                return projection([d.lon, d.lat])[1];
+                            })
+                            .attr("r", 4)
+                            .style("fill", function (d) {
+                                return colors[d.k2];
+                            })
+                            .style("opacity", 0.65);
+
+                });
+            })
+
+            //On click, update with new data
+            $(document).on("click", ".kchange", function () {
+                $(".btn-success").removeClass("btn-success").addClass("btn-default");
+                $(this).removeClass("btn-default").addClass("btn-success");
+                var type = $(this).data("type");
+                change_points(type);
+            });
+
+            //On mouseover, update with new data
+            $(document).on("mouseover", ".kchange", function () {
+                var type = $(this).data("type");
+                change_points(type);
+            });
+
+            //On mouseover, update with new data
+            $(document).on("mouseleave", ".kchange", function () {
+                var type = $(".kchange.btn-success").data("type");
+                change_points(type);
+            });
+
+            function change_points(type) {
                 svg2.selectAll("circle")
-                        .data(data)
-                        .enter()
-                        .append("circle")
+                        .data(dataset)
                         .attr("cx", function (d) {
                             return projection([d.lon, d.lat])[0];
                         })
@@ -346,73 +680,36 @@
                         })
                         .attr("r", 4)
                         .style("fill", function (d) {
+                            if (type == "k2") {
+                                return colors[d.k2];
+                            }
+                            else if (type == "k3") {
+                                return colors[d.k3];
+                            }
+                            else if (type == "k4") {
+                                return colors[d.k4];
+                            }
+                            else if (type == "k5") {
+                                return colors[d.k5];
+                            }
+                            else if (type == "k6") {
+                                return colors[d.k6];
+                            }
                             return colors[d.k2];
                         })
                         .style("opacity", 0.65);
-
-            });
-        })
-
-        //On click, update with new data
-        $(document).on("click", ".kchange", function () {
-            $(".btn-success").removeClass("btn-success").addClass("btn-default");
-            $(this).removeClass("btn-default").addClass("btn-success");
-            var type = $(this).data("type");
-            change_points(type);
+            }
         });
 
-        //On mouseover, update with new data
-        $(document).on("mouseover", ".kchange", function () {
-            var type = $(this).data("type");
-            change_points(type);
-        });
-
-        //On mouseover, update with new data
-        $(document).on("mouseleave", ".kchange", function () {
-            var type = $(".kchange.btn-success").data("type");
-            change_points(type);
-        });
-
-        function change_points(type) {
-            svg2.selectAll("circle")
-                    .data(dataset)
-                    .attr("cx", function (d) {
-                        return projection([d.lon, d.lat])[0];
-                    })
-                    .attr("cy", function (d) {
-                        return projection([d.lon, d.lat])[1];
-                    })
-                    .attr("r", 4)
-                    .style("fill", function (d) {
-                        if (type == "k2") {
-                            return colors[d.k2];
-                        }
-                        else if (type == "k3") {
-                            return colors[d.k3];
-                        }
-                        else if (type == "k4") {
-                            return colors[d.k4];
-                        }
-                        else if (type == "k5") {
-                            return colors[d.k5];
-                        }
-                        else if (type == "k6") {
-                            return colors[d.k6];
-                        }
-                        return colors[d.k2];
-                    })
-                    .style("opacity", 0.65);
-        }
-    });
-
-</script>
-<div>
-    <button class="kchange btn btn-success" data-type="k2" type="button">Click for k2</button>
-    <button class="kchange btn btn-default" data-type="k3" type="button">Click for k3</button>
-    <button class="kchange btn btn-default" data-type="k4" type="button">Click for k4</button>
-    <button class="kchange btn btn-default" data-type="k5" type="button">Click for k5</button>
-    <button class="kchange btn btn-default" data-type="k6" type="button">Click for k6</button>
+    </script>
+    <div>
+        <button class="kchange btn btn-success" data-type="k2" type="button">Click for k2</button>
+        <button class="kchange btn btn-default" data-type="k3" type="button">Click for k3</button>
+        <button class="kchange btn btn-default" data-type="k4" type="button">Click for k4</button>
+        <button class="kchange btn btn-default" data-type="k5" type="button">Click for k5</button>
+        <button class="kchange btn btn-default" data-type="k6" type="button">Click for k6</button>
+    </div>
+    <div>*You can also hover to peek</div>
 </div>
-<div>*You can also hover to peek</div>
 </body>
 </html>
