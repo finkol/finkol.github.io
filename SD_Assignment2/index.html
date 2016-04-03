@@ -40,11 +40,21 @@
 <div id="container">
 
     <h2>Assignment 2A: Simple SVG stuff</h2>
+    <svg width="500" height="160">
+        <rect x="0" y="40" width="80" height="80" style="fill:purple;stroke-width:2;stroke:gray" fill-opacity="1"></rect>
+        <rect x="40" y="30" width="80" height="80" style="fill:blue;stroke-width:2;stroke:gray" fill-opacity="0.8"></rect>
+        <rect x="80" y="20" width="80" height="80" style="fill:green;stroke-width:2;stroke:gray" fill-opacity="0.6"></rect>
+        <rect x="120" y="10" width="80" height="80" style="fill:yellow;stroke-width:2;stroke:gray" fill-opacity="0.4"></rect>
+        <rect x="160" y="0" width="80" height="80" style="fill:red;stroke-width:2;stroke:gray" fill-opacity="0.2"></rect>
+    </svg>
+
+    <div id="count"></div>
+
     <script type="text/javascript">
 
         var dataset = [ 5, 10, 15, 20, 25 ];
 
-        d3.select("body").selectAll("p")
+        d3.select("#count").selectAll("p")
                 .data(dataset)
                 .enter()
                 .append("p")
@@ -60,13 +70,6 @@
                 });
 
     </script>
-    <svg width="500" height="160">
-        <rect x="0" y="40" width="80" height="80" style="fill:purple;stroke-width:2;stroke:gray" fill-opacity="1"></rect>
-        <rect x="40" y="30" width="80" height="80" style="fill:blue;stroke-width:2;stroke:gray" fill-opacity="0.8"></rect>
-        <rect x="80" y="20" width="80" height="80" style="fill:green;stroke-width:2;stroke:gray" fill-opacity="0.6"></rect>
-        <rect x="120" y="10" width="80" height="80" style="fill:yellow;stroke-width:2;stroke:gray" fill-opacity="0.4"></rect>
-        <rect x="160" y="0" width="80" height="80" style="fill:red;stroke-width:2;stroke:gray" fill-opacity="0.2"></rect>
-    </svg>
 
     <h2>Assignment 2B: One scatter plot and two datasets</h2>
 
@@ -97,8 +100,8 @@
             var data2003;
             var xAxis;
             var yAxis;
-            var data2015_chosen = true;
-            var data2003_chosen = false;
+            var data2015_chosen = false;
+            var data2003_chosen = true;
 
             d3.csv("week7_part4_1.csv", function (error, data) {
 
@@ -122,8 +125,12 @@
                             .entries(data);
 
                     data2015 = dataCategorized[1]['values']
+                    console.log("2015 org")
+                    console.log(data2015)
                     data2003 = dataCategorized[0]['values']
-                    data2015.forEach(function (d) {
+                    console.log("2003 org")
+                    console.log(data2003)
+                    data2003.forEach(function (d) {
                         dataset.push([d['values'][1]['values'], d['values'][0]['values'], d['key']])
                     });
                     dataset = dataset.sort(Comparator);
@@ -252,40 +259,23 @@
                             });
                             data2003_chosen = true;
                             data2015_chosen = false;
-                            $("#toggler_2b").text("2003")
-                            $("#headerLabel").text("Statistics for 2015")
+                            console.log("2003")
+                            $("#toggler_2b").text("2015")
+                            $("#headerLabel").text("Crime Statistics for 2003")
                         }
                         else {
                             data2015.forEach(function (d) {
                                 dataset.push([d['values'][1]['values'], d['values'][0]['values'], d['key']])
                             });
                             data2003_chosen = false;
-                            data2015_chosen = true;
-                            $("#toggler_2b").text("2015")
-                            $("#headerLabel").text("Statistics for 2003")
+                            data2015_chosen = true
+                            console.log("2015")
+                            $("#toggler_2b").text("2003")
+                            $("#headerLabel").text("Crime Statistics for 2015")
                         }
 
                         dataset = dataset.sort(Comparator);
-                        // console.log(dataset)
-                        create_scale_functions();
-
-                        // update axis
-                        yAxis = d3.svg.axis()
-                            .scale(yScale)
-                            .orient("left")
-                            .ticks(5);
-
-                        //Define X axis
-                        xAxis = d3.svg.axis()
-                                .scale(xScale)
-                                .orient("bottom")
-                                .ticks(5);
-
-                        svg1.selectAll("g.y.axis")
-                            .call(yAxis);
-
-                        svg1.selectAll("g.x.axis")
-                            .call(xAxis);
+                        console.log(dataset)
 
 
                         svg1.selectAll("circle")
@@ -328,7 +318,7 @@
     <button type="button" id="toggler_2c" style="width: 100px; height: 40px; font-size: 1em;">2015</button>
 
     <p>click the button above to toggle between years!</p>
-    <h3 id="headerLabel">Crime Statistics for 2003</h3>
+    <h3 id="headerLabel_2c">Crime Statistics for 2003</h3>
 
     <div id="c_svg"></div>
     <script type="text/javascript">
@@ -353,8 +343,8 @@
         var data2003;
         var xAxis;
         var yAxis;
-        var data2015_chosen = true;
-        var data2003_chosen = false;
+        var data2015_chosen = false;
+        var data2003_chosen = true;
 
         d3.csv("week7_part4_1.csv", function (error, data) {
 
@@ -371,11 +361,11 @@
 
                 data2015 = dataCategorized[1]['values']
                 data2003 = dataCategorized[0]['values']
-                data2015.forEach(function(d) {
+                data2003.forEach(function(d) {
                     dataset.push([d['values'][1]['values'], d['values'][0]['values'],d['key']])
                 });
                 dataset = dataset.sort(Comparator);
-                console.log(dataset)
+                //console.log(dataset)
                 create_scale_functions();
                 create_svg();
             }
@@ -504,8 +494,9 @@
                         });
                         data2003_chosen = true;
                         data2015_chosen = false;
-                        $("#toggler_2c").text("2003")
-                        $("#headerLabel").text("Crime Statistics for 2015")
+                        console.log(dataset)
+                        $("#toggler_2c").text("2015")
+                        $("#headerLabel_2c").text("Crime Statistics for 2003")
                     }
                     else {
                         data2015.forEach(function(d) {
@@ -513,22 +504,22 @@
                         });
                         data2003_chosen = false;
                         data2015_chosen = true;
-                        $("#toggler_2c").text("2015")
-                        $("#headerLabel").text("Crime Statistics for 2003")
+                        $("#toggler_2c").text("2003")
+                        $("#headerLabel_2c").text("Crime Statistics for 2015")
                     }
 
                     dataset = dataset.sort(Comparator);
                     // console.log(dataset)
-                    create_scale_functions()
+                    //create_scale_functions()
 
                     // update axis
-                    yAxis = d3.svg.axis()
-                        .scale(yScale)
-                        .orient("left")
-                        .ticks(5);
+                    //yAxis = d3.svg.axis()
+                    //    .scale(yScale)
+                    //    .orient("left")
+                    //    .ticks(5);
 
-                    svg.selectAll("g.y.axis")
-                        .call(yAxis);
+                    //svg.selectAll("g.y.axis")
+                    //    .call(yAxis);
 
 
                     svg.selectAll("rect")
